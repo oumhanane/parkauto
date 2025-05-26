@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gestionvehicules
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gestionvehicules
+  template:
+    metadata:
+      labels:
+        app: gestionvehicules
+    spec:
+      containers:
+        - name: gestionvehicules
+          image: saliha91700/gestionvehiculesimage:latest
+          ports:
+            - containerPort: 8081
