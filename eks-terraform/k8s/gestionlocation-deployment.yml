@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gestionlocation
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gestionlocation
+  template:
+    metadata:
+      labels:
+        app: gestionlocation
+    spec:
+      containers:
+        - name: gestionlocation
+          image: saliha91700/locationimage:latest
+          ports:
+            - containerPort: 8082

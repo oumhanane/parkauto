@@ -1,1 +1,46 @@
+# === Terraform ===
 .terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfplan
+crash.log
+override.tf
+terraform.tfvars.json
+
+# === Kubernetes ===
+*.yaml~
+*.bak
+kubeconfig
+
+# === Docker ===
+*.log
+*.pid
+docker-compose.override.yml
+.env
+.env.*
+
+# === Python / Flask ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+instance/
+*.db
+*.sqlite3
+
+# === VSCode / IDE ===
+.vscode/
+.idea/
+*.swp
+
+# === System files ===
+.DS_Store
+Thumbs.db
+
+# === Logs ===
+logs/
+*.log
+*.out
+*.err
+
