@@ -11,14 +11,15 @@ terraform.tfvars.json
 # === Kubernetes ===
 *.yaml~
 *.bak
-kubeconfig
+kubeconfig*
 
 # === Docker ===
-*.log
 *.pid
 docker-compose.override.yml
 .env
 .env.*
+Dockerfile~
+docker-compose.yml~
 
 # === Python / Flask ===
 __pycache__/
@@ -28,6 +29,8 @@ __pycache__/
 instance/
 *.db
 *.sqlite3
+*.egg-info/
+dist/
 
 # === VSCode / IDE ===
 .vscode/
@@ -44,3 +47,11 @@ logs/
 *.out
 *.err
 
+# === Tests ===
+.cache/
+pytest_cache/
+.coverage
+.coverage.*
+
+# === Java / Maven ===
+target/
