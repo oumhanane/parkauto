@@ -1,0 +1,45 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: parkauto-ingress
+  namespace: parkauto
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: a08bc4ecbeb0845c09b078f08495f7da-940241087.eu-west-3.elb.amazonaws.com
+    http:
+      paths:
+      - path: /gateway
+        pathType: Prefix
+        backend:
+          service:
+            name: gateway-service
+            port:
+              number: 8080
+      - path: /client
+        pathType: Prefix
+        backend:
+          service:
+            name: client-service
+            port:
+              number: 8081
+      - path: /location
+        pathType: Prefix
+        backend:
+          service:
+            name: location-service
+            port:
+              number: 8083
+      - path: /vehicule
+        pathType: Prefix
+        backend:
+          service:
+            name: vehicule-service
+            port:
+              number: 8082
+  tls:
+  - hosts:
+    - a08bc4ecbeb0845c09b078f08495f7da-940241087.eu-west-3.elb.amazonaws.com
+    secretName: parkauto-tls

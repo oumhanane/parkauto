@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vehicule-deployment
+  namespace: parkauto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vehicule
+  template:
+    metadata:
+      labels:
+        app: vehicule
+    spec:
+      containers:
+        - name: vehicule
+          image: saliha91700/gestionvehiculesimage:latest
+          ports:
+            - containerPort: 8082
+          imagePullPolicy: Always

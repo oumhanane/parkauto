@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: location-deployment
+  namespace: parkauto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: location
+  template:
+    metadata:
+      labels:
+        app: location
+    spec:
+      containers:
+        - name: location
+          image: saliha91700/locationimage:latest
+          ports:
+            - containerPort: 8083
+          imagePullPolicy: Always
