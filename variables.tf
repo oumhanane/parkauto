@@ -66,3 +66,8 @@ variable "s3_backup_bucket_name" {
   type        = string
   default     = "parkauto-backup-unique-2025"  # Doit être unique globalement dans AWS
 }
+
+variable "ssh_public_key" {
+  description = "Clé publique SSH pour EC2"
+  type        = string
+}

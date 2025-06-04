@@ -29,16 +29,16 @@ module "vpc" {
   }
 }
 
-# 2. Bucket S3 pour backups
 resource "aws_s3_bucket" "parkauto_backup" {
   bucket = var.s3_backup_bucket_name
-  acl    = "private"
 
   tags = {
     Name        = "parkauto-backup-bucket"
     Environment = "dev"
   }
 }
+
+# Supprimé : aws_s3_bucket_acl car non compatible
 
 # Bloc séparé pour versioning (conforme aux nouvelles recommandations)
 resource "aws_s3_bucket_versioning" "parkauto_backup_versioning" {
