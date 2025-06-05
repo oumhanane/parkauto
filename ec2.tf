@@ -28,7 +28,7 @@ resource "aws_instance" "bastion" {
   instance_type               = "t3.micro"
   subnet_id                   = element(module.vpc.public_subnets, 0)
   key_name                    = var.ec2_key_name
-  vpc_security_group_ids      = [aws_security_group.bastion_sg.id] # ✅ corrigé ici
+  vpc_security_group_ids      = [aws_security_group.bastion_sg.id] #
   user_data                   = file("user_data.sh")
 
   tags = {
