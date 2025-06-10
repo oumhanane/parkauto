@@ -11,9 +11,9 @@ resource "aws_eks_cluster" "parkauto" {
   ]
 }
 
-resource "aws_eks_node_group" "parkauto_nodes" {
+resource "aws_eks_node_group" "parkauto_node_group" {
   cluster_name    = aws_eks_cluster.parkauto.name
-  node_group_name = "${var.eks_cluster_name}-node-group"
+  node_group_name = "parkauto-cluster-node-group"  # correspond au nom réel dans AWS
   node_role_arn   = aws_iam_role.eks_node_role.arn
   subnet_ids      = module.vpc.private_subnets
 

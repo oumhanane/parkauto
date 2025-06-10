@@ -1,120 +1,136 @@
-name: CI/CD ParkAuto
+# name: CI/CD ParkAuto
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+# on:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#     branches:
+#       - main
 
-env:
-  AWS_REGION: eu-west-3
-  EKS_CLUSTER_NAME: parkauto-cluster
-  DOCKER_REGISTRY: ghcr.io
-  SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
+# env:
+#   AWS_REGION: eu-west-3
+#   EKS_CLUSTER_NAME: parkauto-cluster
+#   DOCKER_REGISTRY: ghcr.io
+#   SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
 
-jobs:
-  terraform:
-    name: Terraform Apply Infra
-    runs-on: ubuntu-latest
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+# jobs:
+#   terraform:
+#     name: Terraform Apply Infra
+#     runs-on: ubuntu-latest
+#     env:
+#       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#       TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
+#     steps:
+#       - name: Checkout repo
+#         uses: actions/checkout@v3
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+#       - name: Setup Terraform
+#         uses: hashicorp/setup-terraform@v2
 
-      - name: Terraform Init
-        run: terraform init
+#       - name: Terraform Init
+#         run: terraform init
 
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
+#       - name: Terraform Apply
+#         run: terraform apply -auto-approve
 
-  build_and_push_docker:
-    needs: terraform
-    name: Build & Push Docker Images
-    runs-on: ubuntu-latest
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+#   build_and_push_docker:
+#     needs: terraform
+#     name: Build & Push Docker Images
+#     runs-on: ubuntu-latest
+#     env:
+#       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#     steps:
+#       - name: Checkout repo
+#         uses: actions/checkout@v3
 
-      - name: Login to DockerHub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+#       - name: Login to DockerHub
+#         uses: docker/login-action@v2
+#         with:
+#           username: ${{ secrets.DOCKERHUB_USERNAME }}
+#           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and Push client image
-        run: |
-          docker build -t $DOCKER_REGISTRY/parkauto/client:latest ./microauto/client
-          docker push $DOCKER_REGISTRY/parkauto/client:latest
+#       - name: Build client JAR
+#         run: mvn clean package
+#         working-directory: ./microauto/client
 
-      - name: Build and Push gateway image
-        run: |
-          docker build -t $DOCKER_REGISTRY/parkauto/gateway:latest ./microauto/gateway
-          docker push $DOCKER_REGISTRY/parkauto/gateway:latest
+#       - name: Build and Push client image
+#         run: |
+#           docker build -t $DOCKER_REGISTRY/parkauto/client:latest ./microauto/client
+#           docker push $DOCKER_REGISTRY/parkauto/client:latest
 
-      - name: Build and Push gestionlocation image
-        run: |
-          docker build -t $DOCKER_REGISTRY/parkauto/gestionlocation:latest ./microauto/gestionlocation
-          docker push $DOCKER_REGISTRY/parkauto/gestionlocation:latest
+#       - name: Build gateway JAR
+#         run: mvn clean package
+#         working-directory: ./microauto/gateway
 
-      - name: Build and Push gestionvehicules image
-        run: |
-          docker build -t $DOCKER_REGISTRY/parkauto/gestionvehicules:latest ./microauto/gestionvehicules
-          docker push $DOCKER_REGISTRY/parkauto/gestionvehicules:latest
+#       - name: Build and Push gateway image
+#         run: |
+#           docker build -t $DOCKER_REGISTRY/parkauto/gateway:latest ./microauto/gateway
+#           docker push $DOCKER_REGISTRY/parkauto/gateway:latest
 
-  deploy_k8s:
-    needs: build_and_push_docker
-    name: Deploy to Kubernetes EKS
-    runs-on: ubuntu-latest
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: eu-west-3
-      EKS_CLUSTER_NAME: parkauto-cluster
-      KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+#       - name: Build gestionlocation JAR
+#         run: mvn clean package
+#         working-directory: ./microauto/gestionlocation
 
-      - name: Setup kubectl
-        uses: actions/setup-kubectl@v3
+#       - name: Build and Push gestionlocation image
+#         run: |
+#           docker build -t $DOCKER_REGISTRY/parkauto/gestionlocation:latest ./microauto/gestionlocation
+#           docker push $DOCKER_REGISTRY/parkauto/gestionlocation:latest
 
-      - name: Setup kubeconfig
-        run: |
-          echo "${KUBE_CONFIG_DATA}" | base64 --decode > $HOME/.kube/config
+#       - name: Build gestionvehicules JAR
+#         run: mvn clean package
+#         working-directory: ./microauto/gestionvehicules
 
-      - name: Apply Kubernetes manifests
-        run: |
-          kubectl apply -f k8s/terraform/client-deployment.yaml
-          kubectl apply -f k8s/terraform/client-service.yaml
-          kubectl apply -f k8s/terraform/gateway-deployment.yaml
-          kubectl apply -f k8s/terraform/gateway-service.yaml
-          kubectl apply -f k8s/terraform/location-deployment.yaml
-          kubectl apply -f k8s/terraform/location-service.yaml
-          kubectl apply -f k8s/terraform/vehicule-deployment.yaml
-          kubectl apply -f k8s/terraform/vehicule-service.yaml
+#       - name: Build and Push gestionvehicules image
+#         run: |
+#           docker build -t $DOCKER_REGISTRY/parkauto/gestionvehicules:latest ./microauto/gestionvehicules
+#           docker push $DOCKER_REGISTRY/parkauto/gestionvehicules:latest
 
-  test_maven:
-    needs: deploy_k8s
-    name: Run Maven Tests on Microservices
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        service: [client, gateway, gestionlocation, gestionvehicules]
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+#   deploy_k8s:
+#     needs: build_and_push_docker
+#     name: Deploy to Kubernetes EKS
+#     runs-on: ubuntu-latest
+#     env:
+#       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#       AWS_REGION: eu-west-3
+#       EKS_CLUSTER_NAME: parkauto-cluster
+#       KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+#     steps:
+#       - name: Checkout repo
+#         uses: actions/checkout@v3
 
-      - name: Run Maven Tests for ${{ matrix.service }}
-        working-directory: ./microauto/${{ matrix.service }}
-        run: ./mvnw test
+#       - name: Setup kubectl
+#         uses: actions/setup-kubectl@v3
+
+#       - name: Setup kubeconfig
+#         run: |
+#           echo "${KUBE_CONFIG_DATA}" | base64 --decode > $HOME/.kube/config
+
+#       - name: Apply Kubernetes manifests
+#         run: |
+#           kubectl apply -f k8s/terraform/client-deployment.yaml
+#           kubectl apply -f k8s/terraform/client-service.yaml
+#           kubectl apply -f k8s/terraform/gateway-deployment.yaml
+#           kubectl apply -f k8s/terraform/gateway-service.yaml
+#           kubectl apply -f k8s/terraform/location-deployment.yaml
+#           kubectl apply -f k8s/terraform/location-service.yaml
+#           kubectl apply -f k8s/terraform/vehicule-deployment.yaml
+#           kubectl apply -f k8s/terraform/vehicule-service.yaml
+
+#   test_maven:
+#     needs: deploy_k8s
+#     name: Run Maven Tests on Microservices
+#     runs-on: ubuntu-latest
+#     strategy:
+#       matrix:
+#         service: [client, gateway, gestionlocation, gestionvehicules]
+#     steps:
+#       - name: Checkout repo
+#         uses: actions/checkout@v3
+
+#       - name: Run Maven Tests for ${{ matrix.service }}
+#         working-directory: ./microauto/${{ matrix.service }}
+#         run: ./mvnw test
