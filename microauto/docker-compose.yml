@@ -1,5 +1,7 @@
 services:
   clientservice:
+    build:
+      context: ./client
     image: clientimage
     container_name: clientservice
     ports:
@@ -9,6 +11,8 @@ services:
     restart: always
 
   vehiculeservice:
+    build:
+      context: ./gestionvehicules
     image: gestionvehiculesimage
     container_name: vehiculeservice
     ports:
@@ -18,6 +22,8 @@ services:
     restart: always
 
   locationservice:
+    build:
+      context: ./gestionlocation
     image: locationimage
     container_name: locationservice
     ports:
@@ -27,6 +33,8 @@ services:
     restart: always
 
   gatewayservice:
+    build:
+      context: ./gateway
     image: gatewayimage
     container_name: gatewayservice
     ports:
